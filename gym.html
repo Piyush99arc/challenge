@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>90 Day Challenge ULTIMATE</title>
+<link rel="manifest" href="manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#020617;--card:#0f172a;--accent:#22c55e;--accent2:#f59e0b}
+body{margin:0;font-family:Poppins;background:linear-gradient(#020617,#0f172a);color:white}
+.app{max-width:420px;margin:auto}
+.header{text-align:center;padding:15px;font-weight:800;background:#111827}
+.time{font-size:13px}
+.card{margin:12px;padding:15px;background:var(--card);border-radius:15px}
+.progressRing{width:110px;margin:auto}
+svg{transform:rotate(-90deg)}
+circle{fill:none;stroke-width:8}
+.bg{stroke:#333}
+.progress{stroke:url(#grad);stroke-linecap:round;transition:0.4s}
+.item{display:flex;justify-content:space-between;padding:10px;margin:6px 0;background:rgba(255,255,255,0.05);border-radius:10px}
+.toggle input{display:none}
+.slider{width:45px;height:25px;background:#444;border-radius:20px;display:inline-block;position:relative}
+.slider:before{content:"";width:18px;height:18px;background:white;border-radius:50%;position:absolute;top:3px;left:4px;transition:.3s}
+input:checked + .slider{background:linear-gradient(90deg,var(--accent2),var(--accent))}
+input:checked + .slider:before{transform:translateX(20px)}
+.done{text-decoration:line-through;opacity:.6}
+button{width:90%;margin:8px auto;padding:12px;border:none;border-radius:12px;font-weight:bold}
+.submit{background:linear-gradient(90deg,#22c55e,#16a34a)}
+.reset{background:#ef4444}
+.install{background:#3b82f6}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="header">
+90 Day Challenge 🚀
+<div id="time"></div>
+<div id="quote"></div>
+</div>
+
+<div class="card">
+<svg width="110" height="110">
+<defs>
+<linearGradient id="grad">
+<stop offset="0%" stop-color="#f59e0b"/>
+<stop offset="100%" stop-color="#22c55e"/>
+</linearGradient>
+</defs>
+<circle cx="55" cy="55" r="45" class="bg"/>
+<circle cx="55" cy="55" r="45" class="progress" id="circle" stroke-dasharray="283" stroke-dashoffset="283"/>
+</svg>
+</div>
+
+<div class="card" id="list"></div>
+
+<button class="submit" onclick="submitDay()">Submit</button>
+<button class="reset" onclick="resetDay()">Reset</button>
+<button class="install" id="installBtn" style="display:none">Install App</button>
+</div>
+
+<audio id="sound" src="https://www.soundjay.com/buttons/sounds/button-16.mp3"></audio>
+
+<script>
+const tasks=["Wake up early","Gym","Diet","Sleep","No dirty content","No masturbation","Study","Chant Bhagwan"];
+const list=document.getElementById("list");
+const circle=document.getElementById("circle");
+const sound=document.getElementById("sound");
+
+// Quotes
+const quotes=["Discipline = Freedom 🔥","No excuses 💪","Control mind 🧠","Stay consistent 🚀"];
+setInterval(()=>{
+document.getElementById("quote").innerText=quotes[Math.floor(Math.random()*quotes.length)];
+},3000);
+
+// Time
+setInterval(()=>{
+document.getElementById("time").innerText=new Date().toLocaleString();
+},1000);
+
+// Render
+let html="";
+tasks.forEach((t,i)=>{
+html+=`<div class="item"><span id="t${i}">${t}</span>
+<label class="toggle"><input type="checkbox" onchange="update()"><span class="slider"></span></label></div>`;
+});
+list.innerHTML=html;
+
+function update(){
+sound.play();
+let checks=document.querySelectorAll("input");
+let completed=0;
+checks.forEach((c,i)=>{
+let txt=document.getElementById("t"+i);
+if(c.checked){completed++;txt.classList.add("done");}
+else txt.classList.remove("done");
+});
+let percent=completed/checks.length;
+circle.style.strokeDashoffset=283-(283*percent);
+if(percent===1){launchConfetti();}
+}
+
+function submitDay(){
+let today=new Date().toDateString();
+if(localStorage.getItem("done")==today){alert("Already submitted ❌");return;}
+localStorage.setItem("done",today);
+alert("Saved ✅");
+}
+
+function resetDay(){
+document.querySelectorAll("input").forEach(c=>c.checked=false);
+document.querySelectorAll("span[id^='t']").forEach(t=>t.classList.remove("done"));
+circle.style.strokeDashoffset=283;
+localStorage.removeItem("done");
+}
+
+// Confetti
+function launchConfetti(){
+for(let i=0;i<50;i++){
+let div=document.createElement("div");
+div.style.position="fixed";
+div.style.width="6px";
+div.style.height="6px";
+div.style.background="yellow";
+div.style.top="0";
+div.style.left=Math.random()*100+"vw";
+div.style.animation="fall 2s linear";
+document.body.appendChild(div);
+setTimeout(()=>div.remove(),2000);
+}
+}
+
+// Reminder (Notification API)
+if("Notification" in window){
+Notification.requestPermission();
+setInterval(()=>{
+let h=new Date().getHours();
+let m=new Date().getMinutes();
+if(h===6 && m===0){new Notification("Gym Time 💪");}
+if(h===21 && m===0){new Notification("Submit Report 📊");}
+},60000);
+}
+
+// Install PWA
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e)=>{
+e.preventDefault();
+deferredPrompt=e;
+document.getElementById("installBtn").style.display="block";
+});
+
+document.getElementById("installBtn").onclick=()=>{
+deferredPrompt.prompt();
+};
+
+</script>
+
+<style>
+@keyframes fall{to{transform:translateY(100vh);opacity:0}}
+</style>
+
+</body>
+</html>
